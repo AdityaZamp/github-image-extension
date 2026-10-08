@@ -1,0 +1,130 @@
+/* Colours come from GitHub's Primer variables, so light/dark/high-contrast themes follow automatically. */
+
+.ghlb {
+  position: fixed;
+  /* inset rather than 100vw/vh so the page scrollbar doesn't cover the toolbar */
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  color: var(--fgColor-default, #1f2328);
+  background: color-mix(in srgb, var(--bgColor-default, #fff) 94%, transparent);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+}
+.ghlb::backdrop {
+  background: transparent;
+}
+
+.ghlb-stage {
+  position: absolute;
+  inset: 0 0 48px;
+  overflow: hidden;
+  cursor: zoom-out;
+}
+.ghlb-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
+  transform-origin: 0 0;
+  cursor: grab;
+  opacity: 0;
+  user-select: none;
+  touch-action: none;
+  box-shadow: var(--shadow-floating-large, 0 8px 24px rgba(0, 0, 0, 0.2));
+  background: var(--bgColor-muted, #f6f8fa);
+}
+.ghlb-img:active {
+  cursor: grabbing;
+}
+.ghlb-img.ghlb-ready {
+  opacity: 1;
+}
+
+.ghlb-bar {
+  position: absolute;
+  inset: auto 0 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  border-top: 1px solid var(--borderColor-default, #d1d9e0);
+  background: var(--bgColor-default, #fff);
+}
+.ghlb-bar button,
+.ghlb-open {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--borderColor-default, #d1d9e0);
+  border-radius: 6px;
+  color: inherit;
+  background: var(--bgColor-muted, #f6f8fa);
+  font: inherit;
+  line-height: 30px;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+.ghlb-bar button:hover,
+.ghlb-open:hover {
+  background: var(--bgColor-neutral-muted, #818b981f);
+}
+.ghlb-bar :focus-visible {
+  outline: 2px solid var(--focus-outlineColor, #0969da);
+  outline-offset: -2px;
+}
+.ghlb-count,
+.ghlb-zoom {
+  min-width: 52px;
+  text-align: center;
+  color: var(--fgColor-muted, #59636e);
+  font-variant-numeric: tabular-nums;
+}
+.ghlb-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--fgColor-muted, #59636e);
+}
+.ghlb-single [data-act='prev'],
+.ghlb-single [data-act='next'],
+.ghlb-single .ghlb-count {
+  display: none;
+}
+
+/* Image-diff iframe detector: content.ts listens for this animation's start. */
+@keyframes ghlb-diff-frame {
+  from {
+    outline-color: transparent;
+  }
+}
+iframe[src^='https://viewscreen.githubusercontent.com/'] {
+  animation: ghlb-diff-frame 1ms;
+}
+
+.ghlb-expand {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--borderColor-default, #d1d9e0);
+  border-radius: 6px;
+  color: var(--fgColor-default, #1f2328);
+  background: var(--bgColor-default, #fff);
+  font-size: 16px;
+  cursor: pointer;
+}
+.ghlb-expand:hover {
+  background: var(--bgColor-muted, #f6f8fa);
+}
