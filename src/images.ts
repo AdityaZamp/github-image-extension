@@ -1,7 +1,10 @@
 // Finds the images the lightbox should handle. Pure DOM reads, no side effects.
 
 export interface GalleryItem {
+  /** What the viewer displays. */
   src: string;
+  /** What "open original" links to; unlike `src` it must not expire. */
+  href: string;
   label: string;
   /** Element the item came from: the <img>, or the diff <iframe>. */
   source: Element;
@@ -10,6 +13,31 @@ export interface GalleryItem {
 const IMAGE_EXT = /\.(png|jpe?g|gif|webp|svg|bmp|avif|ico)$/i;
 const DIFF_FRAME = 'iframe[src^="https://viewscreen.githubusercontent.com/"]';
 const MARKDOWN_IMG = '.markdown-body a[href] img';
+const ASSET_ID = /^\/\d+\/\d+-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.\w+$/i;
+
+/**
+ * Uploaded images are served from private-user-images.githubusercontent.com with a
+ * `?jwt=` signature that expires after a few minutes (then 404s). The asset id in the
+ * path maps to github.com/user-attachments/assets/<id>, which re-signs on every request.
+ */
+export function durableUrl(src: string): string {
+  let url: URL;
+  try {
+    url = new URL(src);
+  } catch {
+    return src;
+  }
+  const id = url.hostname === 'private-user-images.githubusercontent.com' && url.pathname.match(ASSET_ID)?.[1];
+  return id ? `https://github.com/user-attachments/assets/${id}` : src;
+}
+
+function markdownItem(img: HTMLImageElement): GalleryItem {
+  const href = durableUrl(img.currentSrc || img.src);
+  // A loaded image is in the browser cache under its signed URL even after the
+  // signature expires; one never loaded (lazy, below the fold) needs a fresh URL.
+  const loaded = img.complete && img.naturalWidth > 0;
+  return { src: loaded ? img.currentSrc || img.src : href, href, label: img.alt, source: img };
+}
 
 /**
  * True when the link wrapping an image points at that image (GitHub's default
@@ -63,7 +91,7 @@ export function diffFrameItems(frame: HTMLIFrameElement): GalleryItem[] {
   ];
   return params.flatMap(([key, label]) => {
     const src = decodeHexUrl(url.searchParams.get(key));
-    return src ? [{ src, label, source: frame }] : [];
+    return src ? [{ src, href: src, label, source: frame }] : [];
   });
 }
 
@@ -72,7 +100,7 @@ export function collectGallery(root: ParentNode = document): GalleryItem[] {
   return [...root.querySelectorAll(`${MARKDOWN_IMG}, ${DIFF_FRAME}`)].flatMap((el): GalleryItem[] => {
     if (el.localName === 'iframe') return diffFrameItems(el as HTMLIFrameElement);
     const img = lightboxImage(el);
-    return img ? [{ src: img.currentSrc || img.src, label: img.alt, source: img }] : [];
+    return img ? [markdownItem(img)] : [];
   });
 }
 

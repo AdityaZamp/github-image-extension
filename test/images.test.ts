@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FIXTURE, PRIVATE, RAW_NEW, RAW_OLD, hex } from './fixture';
-import { collectGallery, decodeHexUrl, diffFrameItems, isDiffFrame, lightboxImage } from '../src/images';
+import { collectGallery, decodeHexUrl, diffFrameItems, durableUrl, isDiffFrame, lightboxImage } from '../src/images';
 
 const byId = (id: string) => document.getElementById(id);
 
@@ -36,7 +36,7 @@ describe('diff iframes', () => {
   it('handles added images and ignores non-image renderers', () => {
     const added = document.createElement('iframe');
     added.src = `https://viewscreen.githubusercontent.com/added/img?enc_url=${hex(RAW_NEW)}&path=x.png`;
-    expect(diffFrameItems(added)).toEqual([{ src: RAW_NEW, label: 'x.png', source: added }]);
+    expect(diffFrameItems(added)).toEqual([{ src: RAW_NEW, href: RAW_NEW, label: 'x.png', source: added }]);
     expect(isDiffFrame(byId('svgdiff'))).toBe(false);
   });
 
@@ -45,6 +45,31 @@ describe('diff iframes', () => {
     expect(decodeHexUrl('abc')).toBeNull();
     expect(decodeHexUrl(hex('javascript:alert(1)'))).toBeNull();
     expect(decodeHexUrl(null)).toBeNull();
+  });
+});
+
+describe('expiring upload URLs', () => {
+  // Shape copied from a real PR upload; the jwt expires minutes after page load.
+  const SIGNED = 'https://private-user-images.githubusercontent.com/206983548/668242433-7cb98712-f2ed-4698-b2ad-d0ece1e0a3de.png?jwt=eyJ0eX';
+  const DURABLE = 'https://github.com/user-attachments/assets/7cb98712-f2ed-4698-b2ad-d0ece1e0a3de';
+
+  it('maps signed upload URLs to the re-signing user-attachments URL', () => {
+    expect(durableUrl(SIGNED)).toBe(DURABLE);
+    expect(durableUrl('https://camo.githubusercontent.com/abc')).toBe('https://camo.githubusercontent.com/abc');
+    expect(durableUrl('https://private-user-images.githubusercontent.com/1/2-abc.png?jwt=x')).toContain('?jwt=x');
+    expect(durableUrl('not a url')).toBe('not a url');
+  });
+
+  it('links "open original" to the durable URL, and shows it when the page copy never loaded', () => {
+    document.body.innerHTML = `<div class="markdown-body"><a href="${SIGNED}"><img src="${SIGNED}" loading="lazy" alt="lazy"></a></div>`;
+    expect(collectGallery()[0]).toMatchObject({ src: DURABLE, href: DURABLE });
+  });
+
+  it('keeps showing the already-loaded (cached) copy', () => {
+    document.body.innerHTML = `<div class="markdown-body"><a href="${SIGNED}"><img src="${SIGNED}" alt="loaded"></a></div>`;
+    const img = document.querySelector('img')!;
+    Object.defineProperties(img, { complete: { value: true }, naturalWidth: { value: 800 } });
+    expect(collectGallery()[0]).toMatchObject({ src: SIGNED, href: DURABLE });
   });
 });
 

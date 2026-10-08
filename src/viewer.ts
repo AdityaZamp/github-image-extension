@@ -195,7 +195,7 @@ function show(i: number) {
   img.classList.remove('ghlb-ready');
   img.alt = item.label;
   img.src = item.src;
-  $<HTMLAnchorElement>('.ghlb-open').href = item.src;
+  $<HTMLAnchorElement>('.ghlb-open').href = item.href;
   $('.ghlb-label').textContent = item.label;
   $('.ghlb-count').textContent = `${index + 1} / ${items.length}`;
   dialog!.classList.toggle('ghlb-single', items.length < 2);
