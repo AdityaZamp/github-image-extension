@@ -41,6 +41,9 @@ function build(): HTMLDialogElement {
   const d = document.createElement('dialog');
   d.className = 'ghlb';
   d.setAttribute('aria-label', 'Image viewer');
+  // Focusable so openViewer can focus the dialog itself rather than letting
+  // showModal() focus the first button (which then shows a focus ring on key presses).
+  d.tabIndex = -1;
   d.innerHTML = `
     <div class="ghlb-stage"><img class="ghlb-img" alt="" draggable="false"></div>
     <div class="ghlb-bar">
@@ -214,6 +217,7 @@ export function openViewer(gallery: GalleryItem[], start: number) {
   show(start);
   if (!dialog.open) {
     dialog.showModal();
+    dialog.focus();
     addEventListener('resize', onResize);
   }
 }

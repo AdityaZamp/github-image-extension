@@ -37,6 +37,8 @@ describe('click interception', () => {
     const e = click(byId('camo'));
     expect(e.defaultPrevented).toBe(true);
     expect(viewerState()).toMatchObject({ open: true, index: 1 });
+    // The dialog, not its first toolbar button, takes focus (no stray focus ring).
+    expect(document.activeElement).toBe(viewerState().dialog);
   });
 
   it('keeps modifier and non-left clicks native (open in new tab still works)', () => {

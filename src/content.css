@@ -16,6 +16,9 @@
   background: color-mix(in srgb, var(--bgColor-default, #fff) 94%, transparent);
   font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
 }
+.ghlb:focus {
+  outline: none;
+}
 .ghlb::backdrop {
   background: transparent;
 }

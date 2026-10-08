@@ -1,6 +1,27 @@
-# GitHub PR Image Lightbox
+# Image Lightbox for GitHub PRs
 
 Chrome extension (Manifest V3) that opens images in GitHub pull requests in an in-page lightbox instead of a new tab.
+
+## Demo
+
+![Demo: clicking a PR screenshot opens the in-page viewer; zoom with +, drag to pan, ← → between images, Esc to close; then the ⤢ button on a Files changed image diff steps through before/after](docs/demo.gif)
+
+*Clicking a comment screenshot, zooming, panning, stepping to the next image and closing it, then opening an image diff from **Files changed** and flipping between before and after.*
+
+**Screenshot in a PR comment.** Clicking it opens the viewer on the page, with zoom, pan, ←/→ between images, and a toolbar that follows GitHub's light theme:
+
+![Lightbox open over a PR comment screenshot, light theme](store/screenshot-1-comment-light.png)
+
+**Image diff in Files changed.** The ⤢ button on the diff opens the *before* and *after* images full size. Here it's showing *after* (2 / 9) in GitHub's dark theme:
+
+![Lightbox showing the "after" side of a PNG diff, dark theme](store/screenshot-2-diff-dark.png)
+
+### Try it yourself
+
+With the extension installed, open these public PRs:
+
+- [microsoft/vscode#340149](https://github.com/microsoft/vscode/pull/340149): click either chart screenshot in the description.
+- [vrothberg/vgrep#267 → Files changed](https://github.com/vrothberg/vgrep/pull/267/files): click ⤢ on any `.png` diff, then press → to step through before/after for every changed screenshot.
 
 ## Build and install
 
@@ -12,7 +33,8 @@ npm run build     # → dist/
 
 1. Open `chrome://extensions` and turn on **Developer mode**.
 2. Click **Load unpacked** and select the `dist/` folder.
-3. Open any PR. After a rebuild, click the reload icon on the extension card and refresh the tab.
+3. **Refresh any GitHub tabs that were already open.** Chrome only adds the extension to pages loaded after it was installed or reloaded. Until you refresh, clicks open a new tab as before.
+4. After a rebuild, click the reload icon on the extension card, then refresh the tab.
 
 ## Publish
 
