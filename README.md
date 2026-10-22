@@ -1,4 +1,4 @@
-# Media Viewer for GitHub PRs
+# Scrubby
 
 Chrome extension (Manifest V3) that opens images in GitHub pull requests in an in-page lightbox instead of a new tab, and gives PR videos the controls GitHub's player is missing.
 

@@ -4,7 +4,7 @@ Upload `extension.zip` (made by `npm run package`) at https://chrome.google.com/
 
 ## Store listing tab
 
-**Name:** Media Viewer for GitHub PRs (comes from the manifest)
+**Name:** Scrubby: image & video viewer for GitHub PRs (comes from the manifest)
 
 **Summary** (from the manifest, ≤132 chars):
 View PR screenshots in an in-page lightbox, and give PR videos ±5s skip, frame stepping, speeds up to 4× and loop.
