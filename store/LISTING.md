@@ -7,7 +7,7 @@ Upload `extension.zip` (made by `npm run package`) at https://chrome.google.com/
 **Name:** Image Lightbox for GitHub PRs (comes from the manifest)
 
 **Summary** (from the manifest, ≤132 chars):
-View screenshots in GitHub pull requests in an in-page lightbox with zoom, pan and keyboard navigation instead of a new tab.
+View PR screenshots in an in-page lightbox, and give PR videos ±5s skip, frame stepping, speeds up to 4× and loop.
 
 **Description:**
 
@@ -19,8 +19,10 @@ Reviewing a pull request full of screenshots? Clicking one normally opens it in 
 • ← / → step through every image on the page, and Esc or a click outside closes the viewer
 • Follows GitHub's light, dark and high-contrast themes automatically
 • Cmd/Ctrl-click still opens a new tab, and badge links keep working as before
+• Videos get a toolbar: ±5s skip, frame-by-frame stepping, speeds up to 4× that carry over between videos, loop, and a precise clock, all with keyboard shortcuts
+• Fixes PR videos that stop playing after the tab has been open for 5 minutes
 
-Lightweight and private: no permissions requested, no data collected, no network requests of its own. It runs only on github.com.
+Lightweight and private: no permissions requested and no data collected. It runs only on github.com and talks only to GitHub.
 
 Not affiliated with or endorsed by GitHub.
 

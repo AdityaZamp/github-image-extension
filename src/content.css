@@ -104,14 +104,15 @@
   display: none;
 }
 
-/* Image-diff iframe detector: content.ts listens for this animation's start. */
-@keyframes ghlb-diff-frame {
+/* Detector for image-diff iframes and PR videos: content.ts listens for this animation's start. */
+@keyframes ghlb-detect {
   from {
     outline-color: transparent;
   }
 }
-iframe[src^='https://viewscreen.githubusercontent.com/'] {
-  animation: ghlb-diff-frame 1ms;
+iframe[src^='https://viewscreen.githubusercontent.com/'],
+.markdown-body video {
+  animation: ghlb-detect 1ms;
 }
 
 .ghlb-expand {
@@ -130,4 +131,46 @@ iframe[src^='https://viewscreen.githubusercontent.com/'] {
 }
 .ghlb-expand:hover {
   background: var(--bgColor-muted, #f6f8fa);
+}
+
+/* Video toolbar, under each PR video inside GitHub's <details> frame. */
+.ghvc-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--borderColor-default, #d1d9e0);
+  font-size: 12px;
+  line-height: 20px;
+}
+.ghvc-bar button,
+.ghvc-bar select {
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--borderColor-default, #d1d9e0);
+  border-radius: 6px;
+  color: var(--fgColor-default, #1f2328);
+  background: var(--bgColor-muted, #f6f8fa);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.ghvc-bar button:hover,
+.ghvc-bar select:hover {
+  background: var(--bgColor-neutral-muted, #818b981f);
+}
+.ghvc-bar [aria-pressed='true'] {
+  color: var(--fgColor-onEmphasis, #fff);
+  background: var(--bgColor-accent-emphasis, #0969da);
+  border-color: transparent;
+}
+.ghvc-bar :focus-visible {
+  outline: 2px solid var(--focus-outlineColor, #0969da);
+  outline-offset: -2px;
+}
+.ghvc-time {
+  margin-left: auto;
+  color: var(--fgColor-muted, #59636e);
+  font-variant-numeric: tabular-nums;
 }

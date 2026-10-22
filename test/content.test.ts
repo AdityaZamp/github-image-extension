@@ -62,7 +62,7 @@ describe('click interception', () => {
   });
 
   it('adds one expand button per image diff, opening at its "before" image', () => {
-    const rendered = (el: Element, animationName = 'ghlb-diff-frame') =>
+    const rendered = (el: Element, animationName = 'ghlb-detect') =>
       el.dispatchEvent(Object.assign(new Event('animationstart', { bubbles: true }), { animationName }));
     const frame = document.querySelector('iframe.render-viewer')!;
     rendered(frame);

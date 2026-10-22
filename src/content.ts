@@ -1,4 +1,5 @@
 import { collectGallery, diffFrameItems, isDiffFrame, lightboxImage } from './images';
+import { enhanceVideo, onVideoKey } from './video';
 import { openViewer } from './viewer';
 
 // Matched on every github.com page because Turbo navigation never re-injects
@@ -22,14 +23,9 @@ document.addEventListener('click', (e) => {
 });
 
 // Files Changed image diffs live in a cross-origin iframe: clicks and even hovers
-// go straight into it, so give each one an expand button instead. content.css runs
-// a 1ms animation on those iframes; its `animationstart` fires once per iframe as
-// it renders (including lazy-loaded and expanded diffs), with no MutationObserver
-// over GitHub's very busy DOM. Not gated on isPullRequest: the URL may not have
-// updated yet mid-navigation, and the button is additive anyway.
-function addExpandButton(e: Event) {
-  const frame = e.target;
-  if ((e as AnimationEvent).animationName !== 'ghlb-diff-frame' || !isDiffFrame(frame) || frame.dataset.ghlb) return;
+// go straight into it, so give each one an expand button instead.
+function addExpandButton(frame: HTMLIFrameElement) {
+  if (frame.dataset.ghlb) return;
   frame.dataset.ghlb = '1';
   const host = frame.parentElement!;
   if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
@@ -42,4 +38,16 @@ function addExpandButton(e: Event) {
   btn.addEventListener('click', () => openAt(frame));
   host.append(btn);
 }
-document.addEventListener('animationstart', addExpandButton);
+
+// content.css runs a 1ms `ghlb-detect` animation on diff iframes and markdown videos;
+// its `animationstart` fires once per element as it renders (including lazy-loaded
+// diffs and comments), with no MutationObserver over GitHub's very busy DOM. Not
+// gated on isPullRequest: the URL may not have updated yet mid-navigation, and both
+// additions are additive anyway.
+document.addEventListener('animationstart', (e) => {
+  if (e.animationName !== 'ghlb-detect') return;
+  const el = e.target;
+  if (isDiffFrame(el)) addExpandButton(el);
+  else if (el instanceof HTMLVideoElement && el.closest('.markdown-body')) enhanceVideo(el);
+});
+document.addEventListener('keydown', onVideoKey, true);
