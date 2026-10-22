@@ -11,16 +11,21 @@ View PR screenshots in an in-page lightbox, and give PR videos ±5s skip, frame 
 
 **Description:**
 
-Reviewing a pull request full of screenshots? Clicking one normally opens it in a new tab and pulls you out of the review. This extension opens it right on the PR page instead.
+Reviewing a pull request full of screenshots and screen recordings? GitHub opens images in a new tab, and its video player can't skip, step frame by frame or go faster than 2×. Scrubby fixes both, right on the PR page.
 
-• Click any image in a PR description, comment or review thread to open it in a lightbox
-• Image diffs in "Files changed" get an expand button that shows the before and after versions full size
+Videos
+• A toolbar under every PR video: skip ±5 seconds, step one frame at a time, speeds from 0.25× to 4×, loop, and a clock to 1/100 of a second
+• Keyboard shortcuts once you've clicked the video: ← / → skip 5s, , / . previous / next frame, < / > speed, k play / pause, m mute, f fullscreen
+• The speed you pick carries over to the next video you play
+• Fixes PR videos that stop playing when the tab has been open for more than 5 minutes
+
+Images
+• Click any image in a PR description, comment or review thread to open it in a lightbox instead of a new tab
 • Zoom with the mouse wheel, trackpad pinch or + / −, drag to pan, and press 1 for original resolution
-• ← / → step through every image on the page, and Esc or a click outside closes the viewer
-• Follows GitHub's light, dark and high-contrast themes automatically
-• Cmd/Ctrl-click still opens a new tab, and badge links keep working as before
-• Videos get a toolbar: ±5s skip, frame-by-frame stepping, speeds up to 4× that carry over between videos, loop, and a precise clock, all with keyboard shortcuts
-• Fixes PR videos that stop playing after the tab has been open for 5 minutes
+• ← / → step through every image on the page; Esc or a click outside closes the viewer
+• Image diffs in "Files changed" get an expand button that shows the before and after versions full size
+
+Works with GitHub's light, dark and high-contrast themes. Cmd/Ctrl-click still opens a new tab, and links on images that point elsewhere keep working.
 
 Lightweight and private: no permissions requested and no data collected. It runs only on github.com and talks only to GitHub.
 
