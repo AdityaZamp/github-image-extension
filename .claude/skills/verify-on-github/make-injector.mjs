@@ -8,8 +8,14 @@ import fs from 'node:fs';
 const js = fs.readFileSync('dist/content.js', 'utf8');
 const css = fs.readFileSync('dist/content.css', 'utf8');
 // Constructable stylesheet + indirect eval: neither is blocked by GitHub's CSP when
-// run through Playwright's evaluate.
+// run through Playwright's evaluate (an inline <script> via addScriptTag is). The
+// bundle is the same code the installed extension runs, but it executes with whatever
+// session the test browser has, so refuse anything but a logged-out github.com page.
 const inject = `() => {
+  if (location.origin !== 'https://github.com') throw new Error('inject only into https://github.com pages');
+  // Logged out, GitHub still renders <meta name="user-login" content="">; signed in, it holds the username.
+  const loggedIn = /(^|; )logged_in=yes/.test(document.cookie) || document.querySelector('meta[name="user-login"]:not([content=""])');
+  if (loggedIn) throw new Error('refusing to inject: this browser is logged in to GitHub; use a logged-out profile');
   const sheet = new CSSStyleSheet();
   sheet.replaceSync(${JSON.stringify(css)});
   document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];

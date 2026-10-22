@@ -7,6 +7,12 @@ description: Verify a change to this extension on real github.com pages by injec
 
 The Playwright MCP browser can't load an unpacked extension, so inject the build into a public PR instead. The injected code is the same `dist/` bundle users install. It runs in the page's JS world rather than an extension's isolated world, which makes no difference for this extension: it uses no `chrome.*` APIs.
 
+## Safety
+
+The injector evaluates `dist/content.js` in a real github.com page, with whatever session the browser has.
+- **Logged-out browser only.** The snippet throws if the page isn't `https://github.com` or the browser is signed in (`logged_in=yes` cookie or a `user-login` meta tag). Don't work around that check; use a fresh, logged-out profile.
+- **Only inject code you've reviewed.** Build from the working tree you're changing, never from an unreviewed branch or PR.
+
 ## Steps
 
 1. Build, then generate the injector:
