@@ -31,7 +31,7 @@ Not affiliated with or endorsed by GitHub.
 
 **Graphic assets:**
 - Store icon: `icons/icon128.png`
-- Screenshots (1280×800): `store/screenshot-1-comment-light.png`, `store/screenshot-2-diff-dark.png`
+- Screenshots (1280×800): `store/screenshot-3-video-toolbar.png` (upload first: it becomes the main image), `store/screenshot-1-comment-light.png`, `store/screenshot-2-diff-dark.png`
 - Small promo tile (440×280): optional, skipped
 
 ## Privacy practices tab
