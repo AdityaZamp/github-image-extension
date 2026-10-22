@@ -42,10 +42,10 @@ Not affiliated with or endorsed by GitHub.
 ## Privacy practices tab
 
 **Single purpose:**
-Shows images on GitHub pull request pages in an in-page lightbox viewer instead of opening them in a new tab.
+Improves viewing images and videos on GitHub pull request pages: opens PR images in an in-page viewer instead of a new tab, and adds playback controls to PR videos.
 
 **Permission justification — host access (`https://github.com/*`, content script):**
-The content script must run on GitHub pages to open PR images in an in-page viewer. It matches all of github.com because GitHub moves between pages without a full reload, so a script limited to /pull/ URLs would not load when a user navigates to a PR from another GitHub page. The script only acts on pull request pages.
+The content script must run on GitHub pages to show PR images in an in-page viewer and add controls to PR videos. It matches all of github.com because GitHub moves between pages without a full reload, so a script limited to /pull/ URLs would not load when a user navigates to a PR from another GitHub page. The script only acts on pull request pages, and it reads or sends no user data.
 
 **Remote code:** No, I am not using remote code. (All JavaScript ships in the package.)
 
