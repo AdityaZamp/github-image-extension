@@ -64,7 +64,7 @@ npm run build     # → dist/
 
 ### Videos
 
-Every uploaded video on a PR page gets a toolbar under GitHub's player (videos in issues and elsewhere are left alone). Shortcuts work while the video or its toolbar has focus (click the video first), including in fullscreen. They never fire while you're typing elsewhere.
+Every uploaded video on a PR page gets a toolbar under GitHub's player (videos in issues and elsewhere are left alone). Shortcuts work once you've clicked the video, its native controls or the toolbar, including in fullscreen. They never fire while you're typing elsewhere.
 
 | Key / button | Action |
 |---|---|

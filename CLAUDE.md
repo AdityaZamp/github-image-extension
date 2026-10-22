@@ -50,6 +50,7 @@ store/           Chrome Web Store listing text and screenshots
 - **Uploaded media links expire.** They are `private-user-images.githubusercontent.com/…?jwt=` URLs with a **300s** lifetime. `github.com/user-attachments/assets/<uuid>` re-signs on every request; see `durableUrl()`. GitHub's CSP allows it for `img-src` and `media-src`.
 - **Videos:** `<details><summary/><video controls muted src=…></details>`. Chrome buffers only the first seconds, so playing after expiry fails with `MEDIA_ERR_NETWORK`.
 - **Media reloads reset speed.** A load sets `playbackRate` back to 1 and fires `ratechange` while `readyState === 0`. Ignore those, because they aren't a user's choice.
+- **Keys pressed inside Chrome's native `<video>` controls never reach the page.** Clicking the play button or the timeline focuses an element in the player's shadow DOM, and the keydown doesn't reach even a window capture listener. That click fires `focusin` on the video while it doesn't match `:focus`; keyboard Tab lands on the video itself first. `jsdom` never matches `:focus`.
 - **Content scripts aren't re-injected into open tabs** after the extension is reloaded. Refresh the tab.
 
 ## Testing

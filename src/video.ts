@@ -120,6 +120,15 @@ export function enhanceVideo(video: HTMLVideoElement) {
   });
   select.addEventListener('change', () => (video.playbackRate = Number(select.value)));
 
+  // Clicking Chrome's own controls (play button, timeline) focuses an element inside the
+  // player's shadow DOM, and key presses there never reach the page, so the shortcuts
+  // went dead. Such a click fires `focusin` while the video itself isn't :focus; pull
+  // focus back to the video. Keyboard users keep the native controls: Tab lands on the
+  // video first (:focus), and Tabbing on into the controls fires no further focusin.
+  video.addEventListener('focusin', () => {
+    if (!video.matches(':focus')) video.focus();
+  });
+
   recoverExpiredSource(video);
   video.after(bar);
   sync();

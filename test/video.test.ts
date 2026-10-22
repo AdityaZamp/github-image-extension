@@ -321,6 +321,23 @@ describe('keyboard', () => {
     expect(v.muted).toBe(true);
   });
 
+  it("takes focus back from Chrome's native controls so shortcuts keep working", () => {
+    // jsdom has no player shadow DOM: a focusin while the video isn't :focus stands in
+    // for a click on the native play button or timeline. jsdom never matches :focus,
+    // so give the video Chrome's meaning of it: focused itself, not inside its controls.
+    v.tabIndex = -1;
+    const matches = v.matches.bind(v);
+    vi.spyOn(v, 'matches').mockImplementation((sel) => (sel === ':focus' ? document.activeElement === v : matches(sel)));
+    const focus = vi.spyOn(v, 'focus');
+    v.dispatchEvent(new FocusEvent('focusin'));
+    expect(focus).toHaveBeenCalled();
+    expect(document.activeElement).toBe(v);
+    // Focus already on the video itself (mouse on the picture, or keyboard Tab): leave it.
+    focus.mockClear();
+    v.dispatchEvent(new FocusEvent('focusin'));
+    expect(focus).not.toHaveBeenCalled();
+  });
+
   it('ignores videos the extension did not enhance', () => {
     const plain = document.body.appendChild(document.createElement('video'));
     expect(key(plain, 'ArrowRight').defaultPrevented).toBe(false);
