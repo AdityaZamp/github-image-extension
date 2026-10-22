@@ -54,7 +54,7 @@ The content script must run on GitHub pages to show PR images in an in-page view
 - [x] I do not use or transfer user data for purposes that are unrelated to my item's single purpose
 - [x] I do not use or transfer user data to determine creditworthiness or for lending purposes
 
-**Privacy policy URL:** not required, since no user data is collected. If the form insists, link to a page stating: "This extension collects, stores and transmits no data."
+**Privacy policy URL:** https://github.com/AdityaZamp/github-image-extension/blob/main/PRIVACY.md (the form marks it required even when no data is collected).
 
 ## Distribution tab
 
