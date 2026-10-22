@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- 16px cut of icon.svg: the frame is dropped and the step mark sits on whole pixels. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2DD4BF"/>
+      <stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+  </defs>
+  <rect width="16" height="16" rx="4" fill="url(#tile)"/>
+  <path d="M4 4 L9 8 L4 12 Z" fill="#fff"/>
+  <rect x="10" y="4" width="2" height="8" fill="#fff"/>
+</svg>

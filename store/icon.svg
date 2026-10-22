@@ -1,6 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-  <rect x="8" y="8" width="112" height="112" rx="24" fill="#1f6feb"/>
-  <rect x="28" y="34" width="72" height="60" rx="8" fill="none" stroke="#fff" stroke-width="8"/>
-  <circle cx="50" cy="54" r="7" fill="#fff"/>
-  <path d="M34 88 L58 64 L72 78 L82 68 L96 84 L96 90 L34 90 Z" fill="#fff"/>
+  <!-- Teal squircle (one hue, lighter top to darker bottom) with a media frame holding a
+       step-forward mark: viewing PR media, and frame-by-frame review. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2DD4BF"/>
+      <stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="30" fill="url(#tile)"/>
+  <rect x="22" y="34" width="84" height="60" rx="14" fill="#fff"/>
+  <path d="M52 50 L74 64 L52 78 Z" fill="#0F766E"/>
+  <rect x="77" y="50" width="8" height="28" rx="3" fill="#0F766E"/>
 </svg>

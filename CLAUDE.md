@@ -1,4 +1,4 @@
-# Image Lightbox for GitHub PRs
+# Media Viewer for GitHub PRs
 
 Chrome extension (Manifest V3). It is one content script on `https://github.com/*` that does three things:
 - opens PR images in an in-page lightbox;

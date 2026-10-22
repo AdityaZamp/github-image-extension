@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Image Lightbox for GitHub PRs",
-  "version": "1.1.0",
+  "name": "Media Viewer for GitHub PRs",
+  "version": "1.2.0",
   "description": "View PR screenshots in an in-page lightbox, and give PR videos ±5s skip, frame stepping, speeds up to 4× and loop.",
   "icons": {
     "16": "icons/icon16.png",
