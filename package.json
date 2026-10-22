@@ -1,13 +1,13 @@
 {
   "name": "github-pr-image-lightbox",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "rm -rf dist && esbuild src/content.ts --bundle --format=iife --target=chrome120 --outfile=dist/content.js && cp -R manifest.json src/content.css icons dist/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "package": "npm run typecheck && npm test && npm run build && rm -f extension.zip && cd dist && zip -qrX ../extension.zip ."
+    "package": "node -e \"const p=require('./package.json').version,m=require('./manifest.json').version;if(p!==m)throw new Error('version mismatch: package.json '+p+' vs manifest.json '+m)\" && npm run typecheck && npm test && npm run build && rm -f extension.zip && cd dist && zip -qrX ../extension.zip ."
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

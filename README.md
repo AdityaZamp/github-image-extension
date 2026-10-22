@@ -16,7 +16,7 @@ Chrome extension (Manifest V3) that opens images in GitHub pull requests in an i
 
 ![Lightbox showing the "after" side of a PNG diff, dark theme](store/screenshot-2-diff-dark.png)
 
-**Video in a PR comment.** A toolbar under the video adds ±5s skip, frame stepping, speeds up to 4× and loop, plus a clock accurate to 1/100 s:
+**Video in a PR comment.** A toolbar under the video adds ±5s skip, frame stepping, speeds up to 4× and loop, plus a clock in hundredths of a second:
 
 ![Video toolbar under a PR screen recording: −5s, −1f, +1f, +5s, speed 2.5×, Loop on, clock 0:02.51 / 0:06.20](docs/video-toolbar.png)
 
@@ -64,17 +64,19 @@ npm run build     # → dist/
 
 ### Videos
 
-Every uploaded video in a PR gets a toolbar under GitHub's player. Shortcuts work while the video or its toolbar has focus (click the video first), including in fullscreen. They never fire while you're typing elsewhere.
+Every uploaded video on a PR page gets a toolbar under GitHub's player (videos in issues and elsewhere are left alone). Shortcuts work while the video or its toolbar has focus (click the video first), including in fullscreen. They never fire while you're typing elsewhere.
 
 | Key / button | Action |
 |---|---|
 | `←` / `→`, `j` / `l`, **−5s / +5s** | Back / forward 5 seconds (the native arrows only move 1% of the video) |
 | `,` / `.`, **−1f / +1f** | Previous / next frame, pausing first |
-| `<` / `>`, speed menu | Slower / faster: 0.25× to 4× (native stops at 2×). The speed you pick carries over to the next video you play |
+| `<` / `>`, speed menu | Slower / faster: 0.25× to 4× (native stops at 2×). A video you've set keeps its speed; one you haven't starts at the last speed you picked |
 | **Loop** | Loop the video |
 | `k` | Play / pause (`Space` works natively too) |
 | `m` | Mute / unmute (GitHub starts videos muted) |
 | `f` | Fullscreen |
+
+The clock is exact when paused or stepping. While playing, it updates when the browser reports progress, about 4 times a second.
 
 Kept native: volume, fullscreen and picture-in-picture buttons, download, and the scrubber.
 
@@ -92,7 +94,7 @@ The extension does four things:
 
 - **One delegated `click` listener** on `document`, bubble phase. It acts only on a PR URL, on an unmodified left click, on an `<img>` inside `.markdown-body` whose link points at the image itself. Everything else, including clicks GitHub already handled (`defaultPrevented`), passes through untouched. Comments loaded later and Turbo navigation work automatically.
 - **Diff iframes** get an expand button. A 1ms CSS animation on `iframe[src^="https://viewscreen…"]` fires `animationstart` once per iframe as it renders, so there is no MutationObserver over GitHub's DOM. The image URLs are decoded from the iframe `src`. Nothing is injected into the iframe, so no extra host permission is needed.
-- **Videos** get a toolbar from the same animation detector (`.markdown-body video`). Keys are handled in a capture-phase listener, and only when the target is an enhanced video or its toolbar. On a media error, the video reloads from `github.com/user-attachments/assets/<id>`, which re-signs on every request, and resumes at the same time. It retries once per successful load, so a genuinely broken file can't loop.
+- **Videos** get a toolbar from the same animation detector (`.markdown-body video`). Keys are handled in a capture-phase listener, and only when the target is an enhanced video or its toolbar. On a media error, the video reloads from `github.com/user-attachments/assets/<id>`, which re-signs on every request, and resumes at the same time and speed. Decode errors are skipped, because a fresh URL can't fix a bad file, and there's at most one reload per minute, so a broken or crafted upload can't cause a reload loop. A real expiry needs one reload per 5-minute link lifetime.
 - **Viewer**: a native `<dialog>` opened with `showModal()`, which provides the top layer, focus trap, `Esc` and focus restore. The gallery is collected from the page when the viewer opens. Colours come from GitHub's Primer CSS variables, so light, dark and high-contrast themes follow automatically.
 
 **Permissions:** none. There is only a content script on `https://github.com/*`, which is needed because GitHub navigates between pages without a reload and won't re-inject a script that matches only `/pull/` URLs.
@@ -108,6 +110,10 @@ src/content.ts   the click listener, the render detector and the key listener
 src/content.css  viewer + video toolbar styles, render detector
 test/            fixtures based on real GitHub markup
 ```
+
+## Contributing
+
+Conventions, verified GitHub/Chrome behaviour and the testing rules are in [CLAUDE.md](CLAUDE.md). To check a change on real GitHub pages (the Playwright browser can't load an unpacked extension), follow [`.claude/skills/verify-on-github`](.claude/skills/verify-on-github/SKILL.md).
 
 ## Known limits
 

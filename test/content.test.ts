@@ -75,6 +75,18 @@ describe('click interception', () => {
     expect(viewerState()).toMatchObject({ open: true, index: 3 });
   });
 
+  it('adds video toolbars on PR pages only', () => {
+    const renderVideo = () => {
+      document.body.innerHTML = '<div class="markdown-body"><details open><video controls></video></details></div>';
+      const video = document.querySelector('video')!;
+      video.dispatchEvent(Object.assign(new Event('animationstart', { bubbles: true }), { animationName: 'ghlb-detect' }));
+      return document.querySelectorAll('.ghvc-bar').length;
+    };
+    expect(renderVideo()).toBe(1);
+    history.replaceState(null, '', '/owner/repo/issues/1');
+    expect(renderVideo()).toBe(0);
+  });
+
   it('survives the body being replaced by client-side navigation', () => {
     click(byId('attach'));
     viewerState().dialog!.close();

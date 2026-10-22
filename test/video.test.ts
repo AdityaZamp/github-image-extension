@@ -5,9 +5,10 @@ import { act, enhanceVideo, FRAME, formatTime, onVideoKey, RATES, stepRate } fro
 function fakeVideo(duration = 20) {
   const v = document.createElement('video');
   let rate = 1;
-  const state = { currentTime: 0, paused: true };
+  const state = { currentTime: 0, paused: true, readyState: 4 };
   Object.defineProperties(v, {
     error: { value: null, writable: true },
+    readyState: { get: () => state.readyState, set: (r) => (state.readyState = r) },
     duration: { value: duration },
     currentTime: { get: () => state.currentTime, set: (t) => ((state.currentTime = t), v.dispatchEvent(new Event('seeked'))) },
     paused: { get: () => state.paused },
@@ -16,6 +17,15 @@ function fakeVideo(duration = 20) {
     pause: { value: () => (state.paused = true) },
   });
   return v;
+}
+
+/** What Chrome does when a media element (re)loads: rate back to 1×, time to 0, while HAVE_NOTHING. */
+function loadReset(v: HTMLVideoElement) {
+  const ready = v as unknown as { readyState: number };
+  ready.readyState = 0;
+  v.playbackRate = 1;
+  v.currentTime = 0;
+  ready.readyState = 4;
 }
 
 // GitHub's markup for an uploaded video (recorded from a live PR).
@@ -48,6 +58,9 @@ describe('helpers', () => {
     expect(formatTime(125.5)).toBe('2:05.50');
     expect(formatTime(NaN)).toBe('--:--');
     expect(formatTime(Infinity)).toBe('--:--');
+    // Rounding happens before splitting into minutes, so no "0:60.00".
+    expect(formatTime(59.996)).toBe('1:00.00');
+    expect(formatTime(119.997)).toBe('2:00.00');
   });
 
   it('steps through speeds and stops at the ends', () => {
@@ -142,6 +155,29 @@ describe('toolbar', () => {
     expect(b.playbackRate).toBe(1.5);
     expect(document.querySelectorAll('select')[1].value).toBe('1.5');
   });
+
+  it('keeps a speed chosen for one video when another video gets a different one', () => {
+    const a = fakeVideo();
+    const b = fakeVideo();
+    mount(a, b);
+    a.playbackRate = 0.5;
+    b.playbackRate = 2;
+    void a.play();
+    expect(a.playbackRate).toBe(0.5);
+  });
+
+  it("ignores the browser's reset to 1× while a video loads", () => {
+    const a = fakeVideo();
+    const b = fakeVideo();
+    mount(a, b);
+    a.playbackRate = 2;
+    loadReset(a);
+    // The reset is neither a's choice nor the new default.
+    void a.play();
+    expect(a.playbackRate).toBe(2);
+    void b.play();
+    expect(b.playbackRate).toBe(2);
+  });
 });
 
 describe('expired upload URLs', () => {
@@ -162,6 +198,45 @@ describe('expired upload URLs', () => {
     v.dispatchEvent(new Event('loadedmetadata'));
     expect(v.currentTime).toBe(2.24);
     expect(v.paused).toBe(false);
+  });
+
+  it('restores the speed the reload reset, without losing it as the default', () => {
+    const v = fakeVideo();
+    const other = fakeVideo();
+    v.setAttribute('src', SIGNED);
+    mount(v, other);
+    v.playbackRate = 2;
+    void v.play();
+    v.currentTime = 10;
+    v.dispatchEvent(new Event('error'));
+    loadReset(v);
+    v.dispatchEvent(new Event('loadedmetadata'));
+    expect(v.playbackRate).toBe(2);
+    expect(v.currentTime).toBe(10);
+    void other.play();
+    expect(other.playbackRate).toBe(2);
+  });
+
+  it('applies the pending restore once, keeping the first target if a reload failed early', () => {
+    vi.useFakeTimers();
+    const v = fakeVideo();
+    v.setAttribute('src', SIGNED);
+    mount(v);
+    void v.play();
+    v.currentTime = 10;
+    v.dispatchEvent(new Event('error'));
+    // The reload fails before metadata; a minute later the next attempt starts from 0:00.
+    loadReset(v);
+    vi.advanceTimersByTime(61_000);
+    v.dispatchEvent(new Event('error'));
+    v.dispatchEvent(new Event('loadedmetadata'));
+    expect(v.currentTime).toBe(10);
+    // A later, ordinary metadata load (no reload pending) doesn't seek or play again.
+    v.pause();
+    v.currentTime = 30;
+    v.dispatchEvent(new Event('loadedmetadata'));
+    expect(v.currentTime).toBe(30);
+    expect(v.paused).toBe(true);
   });
 
   afterEach(() => vi.useRealTimers());
@@ -232,9 +307,18 @@ describe('keyboard', () => {
     onVideoKey(Object.defineProperty(meta, 'target', { value: v }));
     expect(meta.defaultPrevented).toBe(false);
     expect(key(document.querySelector('select')!, 'ArrowRight').defaultPrevented).toBe(false);
+    expect(key(document.querySelector('select')!, 'ArrowDown').defaultPrevented).toBe(false);
     const textarea = document.body.appendChild(document.createElement('textarea'));
     expect(key(textarea, 'k').defaultPrevented).toBe(false);
     expect(v.currentTime).toBe(0);
+  });
+
+  it('keeps the other shortcuts working while the speed menu has focus', () => {
+    const select = document.querySelector('select')!;
+    expect(key(select, 'l').defaultPrevented).toBe(true);
+    expect(v.currentTime).toBe(5);
+    key(select, 'm');
+    expect(v.muted).toBe(true);
   });
 
   it('ignores videos the extension did not enhance', () => {

@@ -41,13 +41,13 @@ function addExpandButton(frame: HTMLIFrameElement) {
 
 // content.css runs a 1ms `ghlb-detect` animation on diff iframes and markdown videos;
 // its `animationstart` fires once per element as it renders (including lazy-loaded
-// diffs and comments), with no MutationObserver over GitHub's very busy DOM. Not
-// gated on isPullRequest: the URL may not have updated yet mid-navigation, and both
-// additions are additive anyway.
+// diffs and comments), with no MutationObserver over GitHub's very busy DOM.
+// Videos are PR-only like image clicks, since their toolbar takes keys. The diff button
+// isn't gated: it only exists where GitHub renders an image diff, and takes nothing over.
 document.addEventListener('animationstart', (e) => {
   if (e.animationName !== 'ghlb-detect') return;
   const el = e.target;
   if (isDiffFrame(el)) addExpandButton(el);
-  else if (el instanceof HTMLVideoElement && el.closest('.markdown-body')) enhanceVideo(el);
+  else if (el instanceof HTMLVideoElement && el.closest('.markdown-body') && isPullRequest()) enhanceVideo(el);
 });
 document.addEventListener('keydown', onVideoKey, true);

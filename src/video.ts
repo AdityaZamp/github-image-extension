@@ -10,14 +10,19 @@ const SKIP = 5;
 // Measure with requestVideoFrameCallback metadata if exact stepping matters.
 export const FRAME = 1 / 30;
 
-/** Last speed the user picked; applied to every video when it starts playing. */
+/** Last speed picked on any video; a video with no speed of its own starts at this. */
 let preferredRate = 1;
 const bars = new WeakMap<Element, HTMLVideoElement>();
+// A media load resets playbackRate to 1 and fires `ratechange` while readyState is
+// still HAVE_NOTHING (checked in Chrome); that reset is not a user's choice.
+const HAVE_NOTHING = 0;
 
 export function formatTime(t: number): string {
   if (!Number.isFinite(t)) return '--:--';
-  const m = Math.floor(t / 60);
-  return `${m}:${(t - m * 60).toFixed(2).padStart(5, '0')}`;
+  // Round to hundredths first, so 59.996 reads 1:00.00, not 0:60.00.
+  const cs = Math.round(t * 100);
+  const m = Math.floor(cs / 6000);
+  return `${m}:${((cs % 6000) / 100).toFixed(2).padStart(5, '0')}`;
 }
 
 /** The next speed up (dir 1) or down (dir -1) from `rate`; stays put at either end. */
@@ -74,7 +79,7 @@ const BAR = `
   <button type="button" data-act="loop" aria-pressed="false" title="Loop">Loop</button>
   <span class="ghvc-time" aria-label="Current time / duration"></span>`;
 
-/** Adds the toolbar under one PR video. Safe to call more than once. */
+/** Adds the toolbar under one video. Safe to call more than once. */
 export function enhanceVideo(video: HTMLVideoElement) {
   if (video.dataset.ghvc) return;
   video.dataset.ghvc = '1';
@@ -97,10 +102,16 @@ export function enhanceVideo(video: HTMLVideoElement) {
   for (const type of ['timeupdate', 'seeked', 'durationchange', 'loadedmetadata', 'ratechange', 'ghvc-sync']) {
     video.addEventListener(type, sync);
   }
-  // Any speed change, ours or from the native ⋮ menu, becomes the default for the next video.
-  video.addEventListener('ratechange', () => (preferredRate = video.playbackRate));
+  // Speed: once set on this video (toolbar, keys or the native ⋮ menu) it's the video's
+  // own; until then the video follows the last speed picked anywhere.
+  let ownRate: number | undefined;
+  video.addEventListener('ratechange', () => {
+    if (video.readyState === HAVE_NOTHING) return;
+    ownRate = preferredRate = video.playbackRate;
+  });
   video.addEventListener('play', () => {
-    if (video.playbackRate !== preferredRate) video.playbackRate = preferredRate;
+    const rate = ownRate ?? preferredRate;
+    if (video.playbackRate !== rate) video.playbackRate = rate;
   });
 
   bar.addEventListener('click', (e) => {
@@ -120,6 +131,9 @@ export function enhanceVideo(video: HTMLVideoElement) {
  * MEDIA_ERR_NETWORK ("data source error"). On that error, reload from the
  * user-attachments URL (re-signed on every request) and pick up where it stopped.
  *
+ * The reload resets time and speed, so both are restored. If a reload fails before
+ * loading, the next one keeps the original target rather than the reset 0:00 / 1×.
+ *
  * Bounded so a broken or crafted upload can't cause a reload loop: decode errors are
  * skipped (a fresh URL can't fix a bad file), and there's at most one reload per
  * RETRY_GAP_MS. A real expiry needs one reload per 300s link lifetime, well under that.
@@ -130,9 +144,20 @@ const RETRY_GAP_MS = 60_000;
 function recoverExpiredSource(video: HTMLVideoElement) {
   let lastRetry = -Infinity;
   let resume = false;
+  let pending: { time: number; rate: number; play: boolean } | null = null;
   video.addEventListener('play', () => (resume = true));
   video.addEventListener('pause', () => {
     if (!video.error) resume = false;
+  });
+  // One listener for every reload, so a reload that failed early can't leave a stale
+  // handler that fires alongside the next one.
+  video.addEventListener('loadedmetadata', () => {
+    if (!pending) return;
+    const { time, rate, play } = pending;
+    pending = null;
+    video.currentTime = time;
+    video.playbackRate = rate;
+    if (play) void video.play().catch(() => {});
   });
   video.addEventListener('error', () => {
     if (video.error?.code === MEDIA_ERR_DECODE) return;
@@ -140,16 +165,7 @@ function recoverExpiredSource(video: HTMLVideoElement) {
     if (!fresh.startsWith('https://github.com/user-attachments/assets/')) return;
     if (Date.now() - lastRetry < RETRY_GAP_MS) return;
     lastRetry = Date.now();
-    const time = video.currentTime;
-    const play = resume;
-    video.addEventListener(
-      'loadedmetadata',
-      () => {
-        video.currentTime = time;
-        if (play) void video.play().catch(() => {});
-      },
-      { once: true },
-    );
+    pending ??= { time: video.currentTime, rate: video.playbackRate, play: resume };
     video.src = fresh;
   });
 }
@@ -172,8 +188,6 @@ const KEYS: Record<string, string> = {
 function targetVideo(target: EventTarget | null): HTMLVideoElement | null {
   if (!(target instanceof Element)) return null;
   if (target.localName === 'video') return (target as HTMLVideoElement).dataset.ghvc ? (target as HTMLVideoElement) : null;
-  // Leave the speed <select> its own arrow keys.
-  if (target.localName === 'select') return null;
   const bar = target.closest('.ghvc-bar');
   return (bar && bars.get(bar)) ?? null;
 }
@@ -187,7 +201,9 @@ function targetVideo(target: EventTarget | null): HTMLVideoElement | null {
 export function onVideoKey(e: KeyboardEvent) {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const action = KEYS[e.key];
-  const video = action && targetVideo(e.target);
+  // The speed <select> keeps its own arrow keys; every other shortcut still works there.
+  if (!action || (e.key.startsWith('Arrow') && e.target instanceof HTMLSelectElement)) return;
+  const video = targetVideo(e.target);
   if (!video) return;
   e.preventDefault();
   e.stopPropagation();
