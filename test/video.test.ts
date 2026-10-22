@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, enhanceVideo, FRAME, formatTime, onVideoKey, RATES, stepRate } from '../src/video';
 
 /** jsdom has no media playback; give a real <video> the state the code reads and writes. */
@@ -7,6 +7,7 @@ function fakeVideo(duration = 20) {
   let rate = 1;
   const state = { currentTime: 0, paused: true };
   Object.defineProperties(v, {
+    error: { value: null, writable: true },
     duration: { value: duration },
     currentTime: { get: () => state.currentTime, set: (t) => ((state.currentTime = t), v.dispatchEvent(new Event('seeked'))) },
     paused: { get: () => state.paused },
@@ -121,6 +122,15 @@ describe('toolbar', () => {
     expect(v.playbackRate).toBe(3);
   });
 
+  it('ignores data-act attributes outside the toolbar', () => {
+    const v = fakeVideo();
+    mount(v);
+    // Something above the toolbar carrying data-act must not trigger an action.
+    v.closest('details')!.setAttribute('data-act', 'fwd');
+    (document.querySelector('.ghvc-time') as HTMLElement).click();
+    expect(v.currentTime).toBe(0);
+  });
+
   it('carries the chosen speed over to the next video played', () => {
     const a = fakeVideo();
     const b = fakeVideo();
@@ -154,19 +164,34 @@ describe('expired upload URLs', () => {
     expect(v.paused).toBe(false);
   });
 
-  it('retries once per successful load, never in a loop', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('reloads at most once a minute, so a broken upload cannot loop', () => {
+    vi.useFakeTimers();
     const v = fakeVideo();
     v.setAttribute('src', SIGNED);
     mount(v);
     v.dispatchEvent(new Event('error'));
-    v.setAttribute('src', 'https://github.com/user-attachments/assets/still-broken');
-    v.dispatchEvent(new Event('error'));
-    expect(v.getAttribute('src')).toBe('https://github.com/user-attachments/assets/still-broken');
-    // After a good load, a later expiry is recovered again.
-    v.dispatchEvent(new Event('loadeddata'));
+    expect(v.getAttribute('src')).toBe(DURABLE);
+    // The file loads a frame, then fails again: no reload, even after loadeddata.
     v.setAttribute('src', SIGNED);
+    v.dispatchEvent(new Event('loadeddata'));
+    vi.advanceTimersByTime(59_000);
+    v.dispatchEvent(new Event('error'));
+    expect(v.getAttribute('src')).toBe(SIGNED);
+    // A real expiry is 300s after the last fresh URL, well past the gap.
+    vi.advanceTimersByTime(241_000);
     v.dispatchEvent(new Event('error'));
     expect(v.getAttribute('src')).toBe(DURABLE);
+  });
+
+  it('skips decode errors, which a fresh URL cannot fix', () => {
+    const v = fakeVideo();
+    v.setAttribute('src', SIGNED);
+    mount(v);
+    (v as { error: unknown }).error = { code: 3 };
+    v.dispatchEvent(new Event('error'));
+    expect(v.getAttribute('src')).toBe(SIGNED);
   });
 
   it('leaves non-upload videos alone', () => {

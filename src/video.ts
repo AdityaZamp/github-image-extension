@@ -104,8 +104,8 @@ export function enhanceVideo(video: HTMLVideoElement) {
   });
 
   bar.addEventListener('click', (e) => {
-    const action = (e.target as Element).closest('[data-act]')?.getAttribute('data-act');
-    if (action) act(video, action);
+    const button = (e.target as Element).closest('[data-act]');
+    if (button && bar.contains(button)) act(video, button.getAttribute('data-act')!);
   });
   select.addEventListener('change', () => (video.playbackRate = Number(select.value)));
 
@@ -119,20 +119,27 @@ export function enhanceVideo(video: HTMLVideoElement) {
  * Chrome only buffers the first seconds up front, so playing later dies with
  * MEDIA_ERR_NETWORK ("data source error"). On that error, reload from the
  * user-attachments URL (re-signed on every request) and pick up where it stopped.
- * One retry per successful load, so a genuinely broken file can't loop.
+ *
+ * Bounded so a broken or crafted upload can't cause a reload loop: decode errors are
+ * skipped (a fresh URL can't fix a bad file), and there's at most one reload per
+ * RETRY_GAP_MS. A real expiry needs one reload per 300s link lifetime, well under that.
  */
+const MEDIA_ERR_DECODE = 3;
+const RETRY_GAP_MS = 60_000;
+
 function recoverExpiredSource(video: HTMLVideoElement) {
-  let retried = false;
+  let lastRetry = -Infinity;
   let resume = false;
-  video.addEventListener('loadeddata', () => (retried = false));
   video.addEventListener('play', () => (resume = true));
   video.addEventListener('pause', () => {
     if (!video.error) resume = false;
   });
   video.addEventListener('error', () => {
+    if (video.error?.code === MEDIA_ERR_DECODE) return;
     const fresh = durableUrl(video.currentSrc || video.src);
-    if (retried || !fresh.startsWith('https://github.com/user-attachments/assets/')) return;
-    retried = true;
+    if (!fresh.startsWith('https://github.com/user-attachments/assets/')) return;
+    if (Date.now() - lastRetry < RETRY_GAP_MS) return;
+    lastRetry = Date.now();
     const time = video.currentTime;
     const play = resume;
     video.addEventListener(
