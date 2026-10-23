@@ -2,6 +2,8 @@
 
 Chrome extension (Manifest V3) that opens images in GitHub pull requests in an in-page lightbox instead of a new tab, and gives PR videos the controls GitHub's player is missing.
 
+**[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/scrubby-image-video-viewe/elkjgjhbcfmioncnlchmnbhihnkgnhel)**. It also works in Edge, Brave and Arc.
+
 ## Demo
 
 ![Demo: clicking a PR screenshot opens the in-page viewer; zoom with +, drag to pan, ← → between images, Esc to close; then the ⤢ button on a Files changed image diff steps through before/after](docs/demo.gif)
@@ -28,7 +30,9 @@ With the extension installed, open these public PRs:
 - [excalidraw/excalidraw#12353](https://github.com/excalidraw/excalidraw/pull/12353): two screen recordings. Click the video, then try `→`, `.`, `>` and `k`.
 - [vrothberg/vgrep#267 → Files changed](https://github.com/vrothberg/vgrep/pull/267/files): click ⤢ on any `.png` diff, then press → to step through before/after for every changed screenshot.
 
-## Build and install
+## Build from source
+
+Only needed for development; everyone else can install from the store link above.
 
 ```sh
 npm install
